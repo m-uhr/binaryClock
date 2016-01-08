@@ -79,8 +79,8 @@
 
 				while( counter < timeArray.length ) {
 
-					firstDigit = getDigitOf( timeArray[ counter ], 0);
-					secondDigit = getDigitOf( timeArray[ counter ], 1);
+					firstDigit = getDigitOf( timeArray[ counter ], true);
+					secondDigit = getDigitOf( timeArray[ counter ], false);
 					
 					updateColor( firstDigit, cssClasses[ timeGroup ], 
 									numberOfRows[ timeGroup ]);
@@ -95,9 +95,9 @@
 			}
 
 
-			function getDigitOf( doubleDigitNumber, whichDigit ) {
+			function getDigitOf( doubleDigitNumber, useFirstDigit ) {
 
-				if( whichDigit === 0 ) {
+				if( useFirstDigit ) {
 					return parseInt( doubleDigitNumber / 10 );
 				}
 				else {
