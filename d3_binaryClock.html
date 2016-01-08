@@ -2,41 +2,125 @@
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
-	<title>Binary clock</title>
+	<title>Binary logo</title>
 </head>
 <body>
 
 	<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
 
 	<script type="text/javascript">
-		var highlightColorRGB = [0, 89, 43];
+
+		var clockWidth = 200,
+			clockHeight = 140;
+
+		var highlightColorRGB = [ 0, 89, 43 ];
 		
 
 		function BinaryClock() 
 		{
-			var currentDate;
+			var currentDate,
+				svg;
 
-			var rectanglesPerColumn = [2, 4, 3, 4, 3, 4]; //h, h, m, m, s, s
-			var classPerColumn = ["hours-first-digit", "hours-second-digit", 
+			var numberOfColumns = 6;
+			var numberOfRows = [ 2, 4, 3, 4, 3, 4 ], //h, h, m, m, s, s
+				cssClasses = [ "hours-first-digit", "hours-second-digit", 
 									"minutes-first-digit", "minutes-second-digit", 
-									"seconds-first-digit", "seconds-second-digit"];
+									"seconds-first-digit", "seconds-second-digit" ];
+
+			var rectangleSize = clockWidth / 8,
+				gap = rectangleSize / 5;
 
 
 			this.init = function() {
-				var svg = d3.select("body").append("svg");
 
-				svg.attr("width", 720)
-					.attr("height", 720);
+				svg = d3.select( "body" )
+							.append( "svg" )
+							.attr( "width", clockWidth )
+							.attr( "height", clockHeight );
+							
+				var currentColumn = 0,
+					currentRow = 0;
 
-				drawBinaryClock();
-				updateBinaryClock();
+				while( currentColumn < numberOfRows.length ) {
+
+					currentRow = numberOfRows[ currentColumn ];
+
+					while( currentRow > 0 ) {
+
+						svg.append( "rect" )
+							.attr( "class", cssClasses[ currentColumn ] )
+							.attr( "y", 
+								clockHeight - (currentRow * (rectangleSize + gap)) )
+						    .attr( "x", getPositionWithGrouping( currentColumn ) )
+						    .attr( "width", rectangleSize )
+						    .attr( "height", rectangleSize );
+
+						currentRow -= 1;
+					}
+
+					currentColumn += 1;
+
+				}
+
+
+				update(); //ticking
+			};
+
+
+			function update () {
+
+				var counter = 0,
+					timeGroup = 0,
+					firstDigit,
+					secondDigit;
+
+				var now = new Date(),
+					timeArray = [now.getHours(), now.getMinutes(), now.getSeconds()];
+
+				while( counter < timeArray.length ) {
+
+					firstDigit = getDigitOf( timeArray[ counter ], 0);
+					secondDigit = getDigitOf( timeArray[ counter ], 1);
+					
+					updateColor( firstDigit, cssClasses[ timeGroup ], 
+									numberOfRows[ timeGroup ]);
+					updateColor( secondDigit, cssClasses[ timeGroup + 1], 
+									numberOfRows[ timeGroup + 1 ]);
+
+					counter += 1;
+					timeGroup += 2;
+				}
+
+				setTimeout(update, 1000 - Date.now() % 1000);
+			}
+
+
+			function getDigitOf( doubleDigitNumber, whichDigit ) {
+
+				if( whichDigit === 0 ) {
+					return parseInt( doubleDigitNumber / 10 );
+				}
+				else {
+					return parseInt( doubleDigitNumber % 10 );
+				}	 
+
+			}
+
+
+			function updateColor( number, cssClass, numberOfRows ) {
+				svg.selectAll( "rect." + cssClass )
+						.data( 
+							toBinary( number, numberOfRows )
+						)
+						.style("fill", function(d) {
+				    			return getFillColor(d);
+				});
 			}
 
 
 			function toBinary ( number, digits ) {
 				var binaryArray = [];
 				var leftover = number;
-
 
 				while( leftover > 0 ) {
 					binaryArray.unshift( leftover % 2 );
@@ -47,69 +131,10 @@
 				{
 					binaryArray.unshift( 0 );
 				}
-
+				
 				return binaryArray;
 			}
 
-
-			/**********************  VIEW  ************************************/
-			var drawBinaryClock = function() {
-				var svg = d3.select("svg");
-
-				svg.attr("width", 720)
-					.attr("height", 720);
-							
-				var columnCounter = 0;
-				var rowCounter;
-
-				while(columnCounter < rectanglesPerColumn.length) {
-
-					rowCounter = rectanglesPerColumn[columnCounter];
-
-					while(rowCounter > 0) {
-						svg.append("rect")
-							.attr("class", classPerColumn[columnCounter])
-							.attr("y", 240 - (rowCounter * 50 + rowCounter * 10))
-						    .attr("x", 20 * columnCounter + 50 * columnCounter - (columnCounter%2) * 10)
-						    .attr("width", 50)
-						    .attr("height", 50);
-						rowCounter -= 1;
-					}
-
-					columnCounter += 1;
-
-				}
-
-			};
-
-			var updateBinaryClock = function() {
-				var rectCounter = 0;
-
-				var svg = d3.select("svg");
-				var currentDate = new Date();
-				var timeArray = [currentDate.getHours(), currentDate.getMinutes(), currentDate.getSeconds()]
-
-				while( rectCounter < classPerColumn.length ) {
-					console.log("RUNDE "+ rectCounter);
-
-					svg.selectAll( "rect." + classPerColumn[rectCounter * 2] )
-						.data( toBinary( parseInt( timeArray[rectCounter] / 10), 
-								rectanglesPerColumn[rectCounter * 2]) )
-						.style("fill", function(d) {
-				    		return getFillColor(d) });
-
-					svg.selectAll( "rect." + classPerColumn[rectCounter*2 + 1] )
-						.data( toBinary( parseInt( timeArray[rectCounter] % 10), 
-								rectanglesPerColumn[rectCounter*2 + 1]) )
-						.style("fill", function(d) {
-				    		return getFillColor(d) });
-
-					rectCounter += 1;
-				}
-
-
-				setTimeout(updateBinaryClock, 1000 - Date.now() % 1000);
-			};
 
 			//TODO Special rect at 2h
 			function getFillColor (d) {
@@ -120,7 +145,17 @@
 			    				")";
 			}
 
+		
+			function getPositionWithGrouping( columnCounter ) {
+				/* small gap between both columns with same time format, i.e. both columns for displaying current hours */
+				var minusGap = (columnCounter % 2) * gap; 
+
+				return columnCounter * (rectangleSize + gap * 2) - minusGap;
+			}
+
+			
 		}
+
 
 		var binaryClock = new BinaryClock();
 		binaryClock.init();
