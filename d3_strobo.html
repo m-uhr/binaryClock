@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Strobo</title>
+</head>
+<body>
+
+	<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+
+	<script type="text/javascript">
+
+		function repeat()
+		{
+			d3.select("body").transition()
+			    .each("start", function() { d3.select(this).style("background-color", "white"); })
+			    .style("background-color", "black")
+			    .each("end", repeat);
+		}
+
+		repeat();
+		
+	</script>
+</body>
+</html>

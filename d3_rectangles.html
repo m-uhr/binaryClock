@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>D3 rectangles example</title>
+</head>
+<body>
+
+	<svg width="720" height="120">
+
+	</svg>
+
+	<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+
+	<script type="text/javascript">
+		var svg = d3.select("svg");
+
+		svg.selectAll("rect")
+		    .data([32, 57, 112, 293])
+		  .enter().append("rect")
+		  	.attr("x", function(d, i) { return i * 30 + 60 * i; })
+		    .attr("y", function(d) { return 60 - Math.sqrt(d) / 2; })
+		    .attr("width", function(d) { return Math.sqrt(d); })
+		    .attr("height", function(d) { return Math.sqrt(d); });
+	</script>
+</body>
+</html>

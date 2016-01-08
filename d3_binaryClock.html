@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Binary clock</title>
+</head>
+<body>
+
+	<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+
+	<script type="text/javascript">
+		var highlightColorRGB = [0, 89, 43];
+		
+
+		function BinaryClock() 
+		{
+			var currentDate;
+
+			var rectanglesPerColumn = [2, 4, 3, 4, 3, 4]; //h, h, m, m, s, s
+			var classPerColumn = ["hours-first-digit", "hours-second-digit", 
+									"minutes-first-digit", "minutes-second-digit", 
+									"seconds-first-digit", "seconds-second-digit"];
+
+
+			this.init = function() {
+				var svg = d3.select("body").append("svg");
+
+				svg.attr("width", 720)
+					.attr("height", 720);
+
+				drawBinaryClock();
+				updateBinaryClock();
+			}
+
+
+			function toBinary ( number, digits ) {
+				var binaryArray = [];
+				var leftover = number;
+
+
+				while( leftover > 0 ) {
+					binaryArray.unshift( leftover % 2 );
+					leftover = Math.floor( leftover / 2 )
+				}
+
+				while( binaryArray.length < digits )
+				{
+					binaryArray.unshift( 0 );
+				}
+
+				return binaryArray;
+			}
+
+
+			/**********************  VIEW  ************************************/
+			var drawBinaryClock = function() {
+				var svg = d3.select("svg");
+
+				svg.attr("width", 720)
+					.attr("height", 720);
+							
+				var columnCounter = 0;
+				var rowCounter;
+
+				while(columnCounter < rectanglesPerColumn.length) {
+
+					rowCounter = rectanglesPerColumn[columnCounter];
+
+					while(rowCounter > 0) {
+						svg.append("rect")
+							.attr("class", classPerColumn[columnCounter])
+							.attr("y", 240 - (rowCounter * 50 + rowCounter * 10))
+						    .attr("x", 20 * columnCounter + 50 * columnCounter - (columnCounter%2) * 10)
+						    .attr("width", 50)
+						    .attr("height", 50);
+						rowCounter -= 1;
+					}
+
+					columnCounter += 1;
+
+				}
+
+			};
+
+			var updateBinaryClock = function() {
+				var rectCounter = 0;
+
+				var svg = d3.select("svg");
+				var currentDate = new Date();
+				var timeArray = [currentDate.getHours(), currentDate.getMinutes(), currentDate.getSeconds()]
+
+				while( rectCounter < classPerColumn.length ) {
+					console.log("RUNDE "+ rectCounter);
+
+					svg.selectAll( "rect." + classPerColumn[rectCounter * 2] )
+						.data( toBinary( parseInt( timeArray[rectCounter] / 10), 
+								rectanglesPerColumn[rectCounter * 2]) )
+						.style("fill", function(d) {
+				    		return getFillColor(d) });
+
+					svg.selectAll( "rect." + classPerColumn[rectCounter*2 + 1] )
+						.data( toBinary( parseInt( timeArray[rectCounter] % 10), 
+								rectanglesPerColumn[rectCounter*2 + 1]) )
+						.style("fill", function(d) {
+				    		return getFillColor(d) });
+
+					rectCounter += 1;
+				}
+
+
+				setTimeout(updateBinaryClock, 1000 - Date.now() % 1000);
+			};
+
+			//TODO Special rect at 2h
+			function getFillColor (d) {
+				return "rgb("+ 
+			    					d * highlightColorRGB[0] +", "+ 
+			    					d * highlightColorRGB[1] +", "+ 
+			    					d * highlightColorRGB[2] +
+			    				")";
+			}
+
+		}
+
+		var binaryClock = new BinaryClock();
+		binaryClock.init();
+	
+	</script>
+</body>
+</html>

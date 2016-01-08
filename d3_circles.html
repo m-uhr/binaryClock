@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>D3 circles example</title>
+</head>
+<body>
+
+	<svg width="720" height="120">
+
+	</svg>
+
+	<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+
+	<script type="text/javascript">
+		var svg = d3.select("svg");
+
+		svg.selectAll("circle")
+		    .data([32, 57, 112, 293])
+		  .enter().append("circle")
+		    .attr("cy", 60)
+		    .attr("cx", function(d, i) { return i * 100 + 30; })
+		    .attr("r", function(d) { return Math.sqrt(d); });
+
+	</script>
+</body>
+</html>
